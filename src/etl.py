@@ -36,20 +36,20 @@ COLS = ["year",
         "job_market_pressure", 
         "competitiveness_score"]
 
-def load_raw() -> pd.dataFrame:
+def load_raw() -> pd.DataFrame:
     if not RAW_PATH.exists():
         raise FileNotFoundError(f"Raw Data File not Found at {RAW_PATH}")
     else:
         return pd.read_csv(RAW_PATH)
     
-def clean(df: pd.dataFrame) -> pd.dataFrame:
+def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df[COLS].copy()
     df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
     return df
 
-def write_output(df_clean: pd.dataFrame) -> None:
+def write_output(df_clean: pd.DataFrame) -> None:
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     df_clean.to_parquet(CLEAN_PATH, index=False)
     
     print(f"Clean Data with {len(df_clean):,} Rows Written to {CLEAN_PATH}")
