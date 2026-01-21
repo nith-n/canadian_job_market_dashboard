@@ -7,7 +7,6 @@ CLEAN_PATH  = OUTPUT_DIR / "cleaned_dataset.parquet"
 
 COLS = ["year", "month", "month_name", "job_title", "job_type", "experience_level", "salary_min_cad", "salary_max_cad", "salary_median_cad", "number_of_openings", "city", "remote_availability"]
 
-SPECIFIED_CITY = "Halifax"
 SPECIFIED_EXPERIENCE_LEVEL = "Entry"
 
 def load_raw() -> pd.DataFrame:
@@ -20,7 +19,6 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df[COLS].copy()
     df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
     df = df[df["experience_level"] == SPECIFIED_EXPERIENCE_LEVEL]
-    df = df[df["city"] == SPECIFIED_CITY]
     df = df[df["job_title"].isin(["Business Analyst", "Data Scientist"])]
     return df
 
@@ -28,7 +26,7 @@ def complete_time_series(df: pd.DataFrame) -> pd.DataFrame:
     agg = (
         df
         .groupby(
-            ["month", "month_name", "job_title", "job_type"],
+            ["month", "month_name", "city", "job_title", "job_type"],
             as_index=False
         )["number_of_openings"]
         .sum()
@@ -41,38 +39,38 @@ def complete_time_series(df: pd.DataFrame) -> pd.DataFrame:
         .set_index("month")
     )
 
+    cities = agg["city"].unique()
     job_titles = agg["job_title"].unique()
     job_types = agg["job_type"].unique()
 
     full_index = pd.MultiIndex.from_product(
-        [months.index, job_titles, job_types],
-        names=["month", "job_title", "job_type"]
+        [months.index, cities, job_titles, job_types],
+        names=["month", "city", "job_title", "job_type"]
     )
 
     complete = (
         agg
-        .set_index(["month", "job_title", "job_type"])
+        .set_index(["month", "city", "job_title", "job_type"])
         .reindex(full_index, fill_value=0)
         .reset_index()
         .merge(
             months.reset_index(),
             on="month",
             how="left",
-            validate="many_to_one"  # safety
+            validate="many_to_one"
         )
     )
 
-    # Keep only ONE month_name column
     complete = complete.drop(columns=["month_name_x"]).rename(
         columns={"month_name_y": "month_name"}
     )
 
-    # Final safety check
     assert not complete.duplicated(
-        ["month", "job_title", "job_type"]
+        ["month", "city", "job_title", "job_type"]
     ).any()
 
     return complete
+
 
 def write_output(df_clean: pd.DataFrame) -> None:
 
