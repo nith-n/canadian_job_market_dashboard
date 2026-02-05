@@ -4,6 +4,32 @@ import altair as alt
 
 st.set_page_config(page_title="Canadian Job Market Analysis 2025", layout="wide")
 
+st.markdown(
+    """
+    <style>
+    /* App background */
+    .stApp {
+        background-color: #f4f6f8;
+    }
+
+    /* White card container */
+    .card {
+        background-color: white;
+        padding: 1.25rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Section headers spacing */
+    h2, h3 {
+        margin-bottom: 0.75rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("Canadian Job Market Analysis 2025")
 
 # -----------------------------
